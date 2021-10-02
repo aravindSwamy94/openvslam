@@ -35,6 +35,17 @@ endif()
 
 set(EXECUTABLE_TARGETS "")
 
+set(SOURCES run_t265_slam.cc realstereo.cpp)
+set(HEADERS realstereo.h)
+add_executable(run_t265_slam ${SOURCES} ${HEADERS})
+list(APPEND EXECUTABLE_TARGETS run_t265_slam)
+
+
+set(SOURCES_LOC run_t265_localization.cc realstereo.cpp)
+set(HEADERS_LOC realstereo.h)
+add_executable(run_t265_localization ${SOURCES_LOC} ${HEADERS_LOC})
+list(APPEND EXECUTABLE_TARGETS run_t265_localization)
+
 add_executable(run_camera_slam run_camera_slam.cc)
 list(APPEND EXECUTABLE_TARGETS run_camera_slam)
 
@@ -67,6 +78,20 @@ list(APPEND EXECUTABLE_TARGETS run_tum_rgbd_slam)
 
 add_executable(run_tum_rgbd_localization run_tum_rgbd_localization.cc util/tum_rgbd_util.cc)
 list(APPEND EXECUTABLE_TARGETS run_tum_rgbd_localization)
+
+# realsense2
+if(WITH_REALSENSE2)
+    if(WIN32)
+        find_package(RealSense2 QUIET)
+    ELSE()
+        find_package(realsense2 QUIET)
+	message(STATUS "realsense flag",realsense2_FOUND)
+    ENDIF()
+    IF(realsense2_FOUND)
+       message(STATUS "Found RealSense2: ${realsense2_INCLUDE_DIRS}")
+       set(CONF_DEPENDENCIES ${realsense2_LIBRARY}) 
+    ENDIF(realsense2_FOUND)
+ENDIF(WITH_REALSENSE2)
 
 foreach(EXECUTABLE_TARGET IN LISTS EXECUTABLE_TARGETS)
     # Set output directory for executables
@@ -107,7 +132,9 @@ foreach(EXECUTABLE_TARGET IN LISTS EXECUTABLE_TARGETS)
                           PRIVATE
                           ${PROJECT_NAME}
                           opencv_imgcodecs
-                          opencv_videoio)
+                          opencv_videoio
+			  ${realsense2_LIBRARY}
+			  )
 
     # include popl and spdlog headers
     target_include_directories(${EXECUTABLE_TARGET}
